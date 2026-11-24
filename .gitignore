@@ -1,0 +1,14 @@
+# Compiled binaries & test artifacts
+*.exe
+*.dll
+*.test
+*.out
+
+# Personal local shortcut data
+shortcuts.json
+shortcuts.json.tmp
+
+# OS / Editor noise
+Thumbs.db
+Desktop.ini
+.DS_Store
