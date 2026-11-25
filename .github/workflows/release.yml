@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run go vet & unit tests
+        shell: pwsh
+        run: |
+          go vet ./...
+          go test -v ./...
+
+      - name: Build Windows x64 executable
+        shell: pwsh
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          $env:GOOS = "windows"
+          $env:GOARCH = "amd64"
+          $env:CGO_ENABLED = "0"
+          go build -trimpath -ldflags="-H=windowsgui -s -w -X main.appVersion=$env:TAG_NAME" -o my-finder.exe .
+
+      - name: Generate SHA256 checksum
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash -Algorithm SHA256 .\my-finder.exe).Hash.ToLower()
+          "$hash  my-finder.exe" | Out-File -Encoding ascii .\checksums.txt
+          Get-Content .\checksums.txt
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          gh release create "$env:TAG_NAME" `
+            .\my-finder.exe `
+            .\checksums.txt `
+            --title "My Finder $env:TAG_NAME" `
+            --generate-notes

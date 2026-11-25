@@ -68,6 +68,7 @@ var (
 	procCallWindowProcW            = modUser32.NewProc("CallWindowProcW")
 	procCreateIconIndirect         = modUser32.NewProc("CreateIconIndirect")
 	procDestroyIcon                = modUser32.NewProc("DestroyIcon")
+	procDrawIconEx                 = modUser32.NewProc("DrawIconEx")
 	procSetTimer                   = modUser32.NewProc("SetTimer")
 	procKillTimer                  = modUser32.NewProc("KillTimer")
 	procIsWindow                   = modUser32.NewProc("IsWindow")
@@ -208,6 +209,7 @@ const (
 	VK_UP      = 0x26
 	VK_DOWN    = 0x28
 	VK_DELETE  = 0x2E
+	VK_F1      = 0x70
 
 	// Cursors
 	IDC_ARROW = 32512
@@ -227,16 +229,18 @@ const (
 	SM_CXSMICON = 49
 	SM_CYSMICON = 50
 
-	// LoadImage
+	// LoadImage / DrawIconEx
 	IMAGE_ICON      = 1
 	LR_DEFAULTCOLOR = 0x00000000
+	DI_NORMAL       = 0x0003
 
 	// DrawText
-	DT_LEFT         = 0x00000000
-	DT_CENTER       = 0x00000001
-	DT_RIGHT        = 0x00000002
-	DT_VCENTER      = 0x00000004
-	DT_SINGLELINE   = 0x00000020
+	DT_LEFT          = 0x00000000
+	DT_CENTER        = 0x00000001
+	DT_RIGHT         = 0x00000002
+	DT_VCENTER       = 0x00000004
+	DT_WORDBREAK     = 0x00000010
+	DT_SINGLELINE    = 0x00000020
 	DT_NOPREFIX     = 0x00000800
 	DT_PATH_ELLIPSIS = 0x00004000
 	DT_END_ELLIPSIS = 0x00008000
@@ -631,35 +635,42 @@ func drawText(hdc uintptr, text string, r RECT, color uint32, font uintptr, flag
 	procSelectObject.Call(hdc, oldFont)
 }
 
-// loadAppIcon loads the embedded RT_GROUP_ICON (ID=1) from the executable at the exact system icon size,
+// loadAppIconSize loads the embedded RT_GROUP_ICON (ID=1) at a specific pixel size,
 // falling back to an in-memory generated icon if no embedded resource is present.
-func loadAppIcon(small bool) uintptr {
-	var cx, cy uintptr
-	if small {
-		cx, _, _ = procGetSystemMetrics.Call(SM_CXSMICON)
-		cy, _, _ = procGetSystemMetrics.Call(SM_CYSMICON)
-		if cx == 0 {
-			cx, cy = 16, 16
-		}
-	} else {
-		cx, _, _ = procGetSystemMetrics.Call(SM_CXICON)
-		cy, _, _ = procGetSystemMetrics.Call(SM_CYICON)
-		if cx == 0 {
-			cx, cy = 32, 32
-		}
+func loadAppIconSize(size int32) uintptr {
+	if size <= 0 {
+		size = 32
 	}
 	h, _, _ := procLoadImageW.Call(
 		uintptr(getModuleHandle()),
 		1, // MAKEINTRESOURCE(1)
 		IMAGE_ICON,
-		cx,
-		cy,
+		uintptr(size),
+		uintptr(size),
 		LR_DEFAULTCOLOR,
 	)
 	if h != 0 {
 		return h
 	}
-	return createAppIcon(int32(cx))
+	return createAppIcon(size)
+}
+
+// loadAppIcon loads the embedded RT_GROUP_ICON (ID=1) from the executable at the exact system icon size,
+// falling back to an in-memory generated icon if no embedded resource is present.
+func loadAppIcon(small bool) uintptr {
+	var cx uintptr
+	if small {
+		cx, _, _ = procGetSystemMetrics.Call(SM_CXSMICON)
+		if cx == 0 {
+			cx = 16
+		}
+	} else {
+		cx, _, _ = procGetSystemMetrics.Call(SM_CXICON)
+		if cx == 0 {
+			cx = 32
+		}
+	}
+	return loadAppIconSize(int32(cx))
 }
 
 // createAppIcon creates a crisp 32x32 golden folder icon in memory for the window & taskbar.

@@ -31,6 +31,7 @@ type hitTarget struct {
 const (
 	hitNone = iota
 	hitAddBtn
+	hitAboutBtn
 	hitClearSearch
 	hitCard
 	hitCardEdit
@@ -71,6 +72,7 @@ type App struct {
 	rectSearchBox  RECT
 	rectClearBtn   RECT
 	rectAddBtn     RECT
+	rectAboutBtn   RECT
 	rectListArea   RECT
 	rectScrollBar  RECT
 	rectScrollThumb RECT
@@ -313,13 +315,21 @@ func (a *App) layout() {
 	pad := s(14)
 	topY := s(12)
 	barH := s(36)
-	addW := s(96)
+	aboutW := barH
+	addW := s(92)
 	gap := s(8)
+	btnGap := s(6)
 
-	a.rectAddBtn = RECT{
-		Left:   a.clientW - pad - addW,
+	a.rectAboutBtn = RECT{
+		Left:   a.clientW - pad - aboutW,
 		Top:    topY,
 		Right:  a.clientW - pad,
+		Bottom: topY + barH,
+	}
+	a.rectAddBtn = RECT{
+		Left:   a.rectAboutBtn.Left - btnGap - addW,
+		Top:    topY,
+		Right:  a.rectAboutBtn.Left - btnGap,
 		Bottom: topY + barH,
 	}
 	a.rectSearchBox = RECT{
@@ -423,6 +433,9 @@ func (a *App) cardActionRects(card RECT) (editBtn RECT, delBtn RECT) {
 }
 
 func (a *App) hitTest(x, y int32) hitTarget {
+	if ptInRect(a.rectAboutBtn, x, y) {
+		return hitTarget{kind: hitAboutBtn}
+	}
 	if ptInRect(a.rectAddBtn, x, y) {
 		return hitTarget{kind: hitAddBtn}
 	}
@@ -748,8 +761,15 @@ func (a *App) handleKeyDown(vk uintptr) bool {
 			setWindowText(a.searchEdit, "")
 			return true
 		}
+	case VK_F1:
+		a.showAboutDialog()
+		return true
 	}
 	return false
+}
+
+func (a *App) showAboutDialog() {
+	showAboutDialog(a.hwnd, a.theme, a.store.FilePath())
 }
 
 // --- Custom Vector Icon Helpers (crisp at any DPI, zero external assets) ---
@@ -830,6 +850,36 @@ func drawCloseIcon(hdc uintptr, r RECT, color uint32) {
 	procSelectObject.Call(hdc, oldPen)
 }
 
+func drawInfoIcon(hdc uintptr, r RECT, color uint32) {
+	cx := (r.Left + r.Right) / 2
+	cy := (r.Top + r.Bottom) / 2
+	rad := (r.Right - r.Left) / 4
+	if rad < 6 {
+		rad = 6
+	}
+
+	pen, _, _ := procCreatePen.Call(PS_SOLID, 2, uintptr(color))
+	defer procDeleteObject.Call(pen)
+	nullBrush, _, _ := procGetStockObject.Call(NULL_BRUSH)
+	oldPen, _, _ := procSelectObject.Call(hdc, pen)
+	oldBrush, _, _ := procSelectObject.Call(hdc, nullBrush)
+
+	// Outer circle
+	procEllipse.Call(hdc, uintptr(cx-rad), uintptr(cy-rad), uintptr(cx+rad), uintptr(cy+rad))
+	// Stem of "i"
+	procMoveToEx.Call(hdc, uintptr(cx), uintptr(cy-1), 0)
+	procLineTo.Call(hdc, uintptr(cx), uintptr(cy+rad-3))
+
+	procSelectObject.Call(hdc, oldPen)
+	procSelectObject.Call(hdc, oldBrush)
+
+	// Dot of "i"
+	dotBrush, _, _ := procCreateSolidBrush.Call(uintptr(color))
+	defer procDeleteObject.Call(dotBrush)
+	dotR := RECT{Left: cx - 1, Top: cy - rad + 3, Right: cx + 2, Bottom: cy - rad + 6}
+	procFillRect.Call(hdc, uintptr(unsafe.Pointer(&dotR)), dotBrush)
+}
+
 func (a *App) paint(hdc uintptr) {
 	if a.clientW <= 0 || a.clientH <= 0 || a.theme == nil {
 		return
@@ -877,6 +927,14 @@ func (a *App) paint(hdc uintptr) {
 	}
 	drawRoundRect(memDC, a.rectAddBtn, s(8), addBG, addBG, false)
 	drawText(memDC, "+ Tambah", a.rectAddBtn, p.AccentText, a.theme.FontButton, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX)
+
+	// --- Top Bar: About ("i") Button ---
+	aboutBG := p.ButtonBG
+	if a.pressed.kind == hitAboutBtn || a.hover.kind == hitAboutBtn {
+		aboutBG = p.ButtonHoverBG
+	}
+	drawRoundRect(memDC, a.rectAboutBtn, s(8), aboutBG, p.ButtonBorder, true)
+	drawInfoIcon(memDC, a.rectAboutBtn, p.TextSecondary)
 
 	// --- Scrollable List Area (clipped) ---
 	clipRgn, _, _ := procCreateRectRgn.Call(
@@ -1257,7 +1315,7 @@ func mainWndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 	case WM_SETCURSOR:
 		if uloword(lParam) == HTCLIENT {
 			switch a.hover.kind {
-			case hitAddBtn, hitClearSearch, hitCard, hitCardEdit, hitCardDelete, hitScrollThumb:
+			case hitAddBtn, hitAboutBtn, hitClearSearch, hitCard, hitCardEdit, hitCardDelete, hitScrollThumb:
 				procSetCursor.Call(uintptr(loadCursor(IDC_HAND)))
 				return 1
 			}
@@ -1285,7 +1343,7 @@ func mainWndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 			}
 			a.updateScrollBounds()
 			procInvalidateRect.Call(hwnd, 0, 0)
-		case hitAddBtn, hitClearSearch, hitCard, hitCardEdit, hitCardDelete:
+		case hitAddBtn, hitAboutBtn, hitClearSearch, hitCard, hitCardEdit, hitCardDelete:
 			if ht.kind == hitCard || ht.kind == hitCardEdit || ht.kind == hitCardDelete {
 				a.selectedIdx = ht.index
 			}
@@ -1313,6 +1371,8 @@ func mainWndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 				switch ht.kind {
 				case hitAddBtn:
 					a.addShortcutDialog()
+				case hitAboutBtn:
+					a.showAboutDialog()
 				case hitClearSearch:
 					setWindowText(a.searchEdit, "")
 					procSetFocus.Call(a.searchEdit)

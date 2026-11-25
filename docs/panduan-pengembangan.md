@@ -132,3 +132,32 @@ Karena UI digambar langsung dengan Win32 GDI, pastikan perubahan UI tidak menyeb
 | `go vet` error: `possible misuse of unsafe.Pointer` | Cast langsung dari `uintptr` Win32 ke `unsafe.Pointer`. | Salin struct/buffer menggunakan `procRtlMoveMemory.Call(...)`. |
 | Perubahan `shortcuts.json` di folder proyek tidak muncul saat `go run .` | `go run .` berjalan dari `%TEMP%` sehingga memakai fallback `%APPDATA%\MyFinder\shortcuts.json`. | Gunakan `go build -o my-finder-debug.exe .` lalu jalankan dari folder proyek untuk menguji mode portable. |
 | PowerShell menolak menjalankan `verify.ps1` | Kebijakan *ExecutionPolicy* default Windows membatasi skrip lokal. | Jalankan dengan flag `powershell -ExecutionPolicy Bypass -File ...`. |
+
+---
+
+## 7. CI/CD & Merilis Versi Baru (GitHub Actions)
+
+Proyek ini memiliki dua workflow otomatis di `.github/workflows/`:
+
+| Workflow | Pemicu (*Trigger*) | Yang Dilakukan |
+| --- | --- | --- |
+| **CI** (`.github/workflows/ci.yml`) | Setiap `git push` atau Pull Request ke branch `main` | Menjalankan `go vet`, `go test`, dan verifikasi build `my-finder.exe` (**tidak** membuat halaman Release). |
+| **Auto-Release** (`.github/workflows/release.yml`) | Hanya saat push **tag** berawalan `v` (misal `v1.0.0`) | Menjalankan `go vet` & `go test`, mem-build `my-finder.exe` (`-trimpath -ldflags="-H=windowsgui -s -w"`), membuat `checksums.txt` (SHA256), lalu menerbitkan halaman **GitHub Release** lengkap dengan catatan rilis otomatis. |
+
+> Selama Anda hanya melakukan `git commit` dan `git push origin main` untuk pengembangan sehari-hari, halaman Release **tidak** akan dibuat.
+
+### Langkah Menerbitkan Rilis Baru
+Setiap kali kode sudah siap dirilis ke pengguna, buat tag versi baru (harus berbeda dari versi sebelumnya) lalu push ke GitHub:
+
+```powershell
+git tag v1.0.0
+git push origin main
+git push origin v1.0.0
+```
+
+Untuk rilis-rilis berikutnya, gunakan pola **Semantic Versioning (`vMAJOR.MINOR.PATCH`)**:
+- `v1.0.1` — perbaikan bug kecil (*patch*)
+- `v1.1.0` — penambahan fitur baru (*minor*)
+- `v2.0.0` — perubahan besar / tidak kompatibel (*major*)
+
+Catatan rilis (*release notes*) akan otomatis dibuat oleh GitHub dari daftar commit/PR sejak tag versi sebelumnya.

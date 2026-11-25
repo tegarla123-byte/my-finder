@@ -40,6 +40,7 @@ flowchart TD
 | `theme.go` | Definisi `Palette` (Dark & Light), cache GDI resources (`ThemeResources`: font Segoe UI & brush) dengan method `Destroy()` untuk mencegah GDI handle leak, serta helper skalasi DPI `S(px)`. |
 | `app.go` | Jendela utama (`MyFinderMainWindow`), layout responsif, rendering daftar kartu shortcut yang ter-clip, scrollbar custom (wheel + drag), hit-testing, toast notification, drag & drop (`WM_DROPFILES`), context menu (`TrackPopupMenu`), dan subclassing kontrol `EDIT` pencarian (`searchEditWndProc`). |
 | `dialog.go` | Dialog modal custom (`MyFinderShortcutDialog`) untuk Tambah & Edit shortcut dengan tema sinkron, tombol browse folder, validasi input, serta penanganan keyboard (`Enter`, `Esc`, `Tab`) di dalam nested message loop. |
+| `about.go` | Dialog modal **Tentang My Finder** (`MyFinderAboutDialog`) menampilkan ikon aplikasi, versi (`main.appVersion`), informasi author, ringkasan MIT License, path `shortcuts.json`, serta tombol buka folder data. |
 | `folderpicker.go` | Pemilih folder Windows modern melalui pemanggilan langsung COM vtable `IFileOpenDialog` (`FOS_PICKFOLDERS`) dan `IShellItem`. |
 | `explorer.go` | Resolusi variabel environment Windows (`%VAR%`), pemeriksaan keberadaan path, dan peluncuran jendela File Explorer baru via `ShellExecuteW` ke `explorer.exe`. |
 | `store.go` | Model `Shortcut`, deteksi lokasi file penyimpanan portable vs `%APPDATA%`, operasi CRUD + reorder, penyimpanan atomik (`.tmp` + rename), normalisasi path Windows, dan filter multi-token. |

@@ -5,6 +5,15 @@ import (
 	"runtime"
 )
 
+var appVersion = "v1.0.0"
+
+const (
+	appName      = "My Finder"
+	appAuthor    = "Tegar Levta Anggana"
+	appCopyright = "Copyright (c) 2026 Tegar Levta Anggana"
+	appLicense   = "MIT License"
+)
+
 func main() {
 	// Win32 UI message loop and STA COM dialogs must stay pinned to the main OS thread.
 	runtime.LockOSThread()

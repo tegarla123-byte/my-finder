@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run unit tests
+        run: go test -v ./...
+
+      - name: Verify Windows release build
+        shell: pwsh
+        run: |
+          go build -ldflags="-H=windowsgui -s -w" -o my-finder.exe .
+          $fi = Get-Item .\my-finder.exe
+          Write-Host ("Built my-finder.exe ({0:N2} MB)" -f ($fi.Length / 1MB))

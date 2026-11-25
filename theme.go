@@ -108,6 +108,7 @@ func getPalette(dark bool) Palette {
 type ThemeResources struct {
 	Palette        Palette
 	DPI            int32
+	FontHeading    uintptr
 	FontTitle      uintptr
 	FontRegular    uintptr
 	FontSub        uintptr
@@ -126,6 +127,7 @@ func newThemeResources(dark bool, dpi int32) *ThemeResources {
 		Palette: p,
 		DPI:     dpi,
 	}
+	t.FontHeading = createFont(dpi, 14, FW_BOLD, "Segoe UI")
 	t.FontTitle = createFont(dpi, 10, FW_SEMIBOLD, "Segoe UI")
 	t.FontRegular = createFont(dpi, 10, FW_NORMAL, "Segoe UI")
 	t.FontSub = createFont(dpi, 8, FW_NORMAL, "Segoe UI")
@@ -141,6 +143,7 @@ func (t *ThemeResources) Destroy() {
 		return
 	}
 	for _, h := range []uintptr{
+		t.FontHeading,
 		t.FontTitle,
 		t.FontRegular,
 		t.FontSub,

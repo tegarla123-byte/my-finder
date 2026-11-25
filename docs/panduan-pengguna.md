@@ -91,6 +91,7 @@ Klik kanan pada item mana saja untuk membuka menu lengkap:
 | `Alt + ↑` / `Alt + ↓` | Memindahkan urutan item terpilih ke atas / ke bawah |
 | `Esc` | Menghapus teks di kotak pencarian |
 | `Delete` | Menghapus item terpilih (saat fokus tidak di kotak ketik) |
+| `F1` | Membuka dialog **Tentang My Finder** (info versi, author, lisensi, dan tombol buka folder data) |
 
 *Di dalam dialog Tambah / Edit Shortcut:*
 - `Tab` berpindah antara kolom Nama dan Lokasi Folder.
