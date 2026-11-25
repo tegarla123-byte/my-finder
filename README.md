@@ -4,6 +4,8 @@
 
 Aplikasi desktop Windows **super lightweight & ramah RAM** yang dibangun dengan **Go + Native Win32 GUI** (tanpa Electron, tanpa WebView2, tanpa runtime tambahan).
 
+<img src="assets/screenshot.png" alt="Tampilan My Finder" width="360" />
+
 ## Fitur Utama
 - **Single-Click Open**: Klik item shortcut untuk langsung membuka **jendela File Explorer baru** (`explorer.exe /n`) ke folder tujuan.
 - **Super Ringan**: Single file `.exe` portable (~2 MB), konsumsi RAM sangat rendah (~3–8 MB), startup instan.
@@ -21,6 +23,7 @@ Aplikasi desktop Windows **super lightweight & ramah RAM** yang dibangun dengan 
 | `Enter` | Buka item terpilih di File Explorer baru |
 | `Alt+↑` / `Alt+↓` | Ubah urutan item |
 | `Esc` | Bersihkan pencarian |
+| `F1` | Buka dialog Tentang My Finder |
 
 ## Build Manual
 ```powershell
