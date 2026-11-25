@@ -6,6 +6,12 @@ Aplikasi desktop Windows **super lightweight & ramah RAM** yang dibangun dengan 
 
 <img src="assets/screenshot.png" alt="Tampilan My Finder" width="360" />
 
+## Download
+- **[Download `my-finder.exe` (Windows 64-bit, Versi Terbaru)](https://github.com/tegarla123-byte/my-finder/releases/latest/download/my-finder.exe)**
+- [Halaman Releases, Changelog & SHA256 Checksum](https://github.com/tegarla123-byte/my-finder/releases/latest)
+
+Tidak perlu instalasi — cukup unduh dan jalankan `my-finder.exe` langsung.
+
 ## Fitur Utama
 - **Single-Click Open**: Klik item shortcut untuk langsung membuka **jendela File Explorer baru** (`explorer.exe /n`) ke folder tujuan.
 - **Super Ringan**: Single file `.exe` portable (~2 MB), konsumsi RAM sangat rendah (~3–8 MB), startup instan.
