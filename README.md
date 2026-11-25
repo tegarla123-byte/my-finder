@@ -1,5 +1,7 @@
 # My Finder
 
+> *Dibuat dengan metode **vibe coding** bersama AI, lalu diuji dan dirawat secara terbuka sebagai proyek open source (MIT License).*
+
 Aplikasi desktop Windows **super lightweight & ramah RAM** yang dibangun dengan **Go + Native Win32 GUI** (tanpa Electron, tanpa WebView2, tanpa runtime tambahan).
 
 ## Fitur Utama
